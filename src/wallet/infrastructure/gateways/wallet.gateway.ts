@@ -14,7 +14,7 @@ import { GetBalanceService } from '../../application/services/get-balance.servic
 })
 export class WalletGateway {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   constructor(private readonly getBalanceService: GetBalanceService) {}
 

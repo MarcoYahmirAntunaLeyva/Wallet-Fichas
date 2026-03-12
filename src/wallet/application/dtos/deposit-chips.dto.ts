@@ -1,4 +1,5 @@
 export class DepositChipsDto {
-  userId: string;
-  moneyAmount: number; // Pesos MXN a convertir en fichas
+  userId!: string;
+  moneyAmount?: number;
+  packageIndex?: number; // Índice del paquete de fichas a comprar
 }

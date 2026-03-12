@@ -1,3 +1,3 @@
 export class CreateWalletDto {
-  userId: string;
+  userId!: string;
 }
