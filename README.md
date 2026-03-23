@@ -8,18 +8,19 @@
 
 1. [Descripción General](#-descripción-general)
 2. [Stack Tecnológico](#-stack-tecnológico)
-3. [Arquitectura del Sistema](#-arquitectura-del-sistema)
-4. [Estructura del Proyecto](#-estructura-del-proyecto)
-5. [Módulos](#-módulos)
+3. [Cambios Recientes](#-cambios-recientes-marzo-2026)
+4. [Arquitectura del Sistema](#-arquitectura-del-sistema)
+5. [Estructura del Proyecto](#-estructura-del-proyecto)
+6. [Módulos](#-módulos)
    - [Auth Module](#-módulo-de-autenticación-auth)
    - [Wallet Module](#-módulo-de-billetera-wallet)
    - [Juegos Module](#-módulo-de-juegos-juegos)
-6. [API Endpoints](#-api-endpoints)
-7. [Sistema de Fichas](#-sistema-de-fichas)
-8. [Variables de Entorno](#-variables-de-entorno)
-9. [Instalación y Ejecución](#-instalación-y-ejecución)
-10. [Flujo de una Partida](#-flujo-de-una-partida)
-11. [Extensibilidad: Agregar un Nuevo Juego](#-extensibilidad-agregar-un-nuevo-juego)
+7. [API Endpoints](#-api-endpoints)
+8. [Sistema de Fichas](#-sistema-de-fichas)
+9. [Variables de Entorno](#-variables-de-entorno)
+10. [Instalación y Ejecución](#-instalación-y-ejecución)
+11. [Flujo de una Partida](#-flujo-de-una-partida)
+12. [Extensibilidad: Agregar un Nuevo Juego](#-extensibilidad-agregar-un-nuevo-juego)
 
 ---
 
@@ -34,6 +35,13 @@ Casino Virtual es una plataforma de juegos en línea cuyo backend gestiona tres 
 | 🎲 **Juegos** | `JuegosModule` | Motor de juegos con plugins (Ruleta, Blackjack). |
 
 Todos los módulos se comunican entre sí a través de **interfaces (puertos)** y **llamadas HTTP internas**, respetando el principio de separación de responsabilidades.
+
+## 🆕 Cambios recientes (Marzo 2026)
+
+- `Wallet` y `Juegos` ahora resuelven `wlId/userId` desde el **token JWT** (`Authorization: Bearer <token>`).
+- Se eliminaron rutas con `:userId` para operaciones del usuario autenticado en `Wallet`.
+- `Juegos` ahora reenvía el token al adaptador HTTP (`WalletApiAdapter`) para operar sobre `/api/wallet/me` y endpoints protegidos.
+- Se agregó utilidad compartida `src/shared/utils/auth-user.util.ts` para extraer `userId` y token de forma consistente.
 
 ---
 
@@ -243,9 +251,9 @@ POST /api/auth/register
     ├── RegisterUseCase
     │   ├── Hash contraseña (bcrypt)
     │   ├── Guarda User en Firestore
-    │   └── Llama WalletApiClient → POST /api/wallet (crea billetera)
+    │   └── Llama WalletApiClient → POST /api/wallet/create (crea billetera)
     │
-    └── Retorna { userId, token }
+    └── Retorna { id, email, name, nickname, wallet }
 
 POST /api/auth/login
     │
@@ -372,11 +380,11 @@ Es el único caso de uso del motor y orquesta el **ciclo completo de una apuesta
 PlaceBetUseCase.execute(bet)
     │
     ├── 1. Localiza el plugin por gameType
-    ├── 2. Consulta saldo via WalletPort.getBalance()
+  ├── 2. Consulta saldo via WalletPort.getBalance(accessToken)
     ├── 3. Valida que haya fondos suficientes
-    ├── 4. Debita la apuesta: WalletPort.debit()
+  ├── 4. Debita la apuesta: WalletPort.debit(accessToken)
     ├── 5. Ejecuta la lógica del juego: plugin.execute(bet)
-    ├── 6. Si ganó → acredita premio: WalletPort.credit()
+  ├── 6. Si ganó → acredita premio: WalletPort.credit(accessToken)
     └── 7. Registra en historial: HistoryPort.saveRecord()
 ```
 
@@ -405,9 +413,9 @@ El módulo de Juegos **nunca importa WalletModule directamente**. En su lugar de
 
 ```typescript
 interface WalletPort {
-  getBalance(userId: string): Promise<number>;
-  debit(userId: string, amount: number, description: string): Promise<boolean>;
-  credit(userId: string, amount: number, description: string): Promise<boolean>;
+  getBalance(accessToken: string): Promise<number>;
+  debit(accessToken: string, amount: number, description: string): Promise<boolean>;
+  credit(accessToken: string, amount: number, description: string): Promise<boolean>;
 }
 ```
 
@@ -451,36 +459,40 @@ El servidor expone todos los endpoints bajo el prefijo global `/api`.
 
 ### Wallet
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/api/wallet/:userId` | Consulta saldo e historial del usuario |
-| `POST` | `/api/wallet/bet` | Procesa una apuesta (débito) |
-| `POST` | `/api/wallet/credit` | Acredita premio al usuario |
-| `POST` | `/api/wallet/deposit` | Recarga de fichas |
-| `POST` | `/api/wallet/withdraw` | Retiro de fichas |
+| Método | Ruta | Autenticación | Descripción |
+|---|---|---|---|
+| `POST` | `/api/wallet/create` | ❌ Pública (interna) | Crea wallet inicial para registro |
+| `GET` | `/api/wallet/me` | ✅ JWT Bearer | Consulta saldo e historial del usuario autenticado |
+| `GET` | `/api/wallet/me/history` | ✅ JWT Bearer | Historial con filtros (`action`, `currencyType`, `from`, `to`) |
+| `GET` | `/api/wallet/info/packages` | ❌ Pública | Consulta paquetes de fichas |
+| `POST` | `/api/wallet/deposit` | ✅ JWT Bearer | Recarga de fichas |
+| `POST` | `/api/wallet/bet` | ✅ JWT Bearer | Procesa una apuesta (débito) |
+| `POST` | `/api/wallet/credit` | ✅ JWT Bearer | Acredita premio al usuario |
+| `POST` | `/api/wallet/withdraw` | ✅ JWT Bearer | Retiro de fichas |
 
 **Body `POST /api/wallet/bet`:**
 ```json
 {
-  "userId": "uuid-del-usuario",
   "chipsAmount": 100,
   "gameDescription": "Apuesta en Roulette"
 }
 ```
 
+> ℹ️ `userId` **ya no se envía** en body/params para operaciones autenticadas; se obtiene del token.
+
 ---
 
 ### Juegos
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `POST` | `/api/games/bet` | Realiza una apuesta en un juego |
-| `GET` | `/api/wallet/:userId` | Consulta saldo desde el módulo de juegos |
+| Método | Ruta | Autenticación | Descripción |
+|---|---|---|---|
+| `POST` | `/api/games/bet` | ✅ JWT Bearer | Realiza una apuesta en un juego |
+| `GET` | `/api/wallet/balance` | ✅ JWT Bearer | Consulta saldo desde el módulo de juegos |
+| `POST` | `/api/wallet/recharge` | ✅ JWT Bearer | Recarga manual desde el módulo de juegos |
 
 **Body `POST /api/games/bet`:**
 ```json
 {
-  "userId": "uuid-del-usuario",
   "amount": 100,
   "gameType": "roulette",
   "selection": [
@@ -489,6 +501,8 @@ El servidor expone todos los endpoints bajo el prefijo global `/api`.
   ]
 }
 ```
+
+> ℹ️ `userId` en `Bet` se usa internamente en dominio, pero para API HTTP se deriva del JWT.
 
 **Respuesta de ejemplo:**
 ```json
@@ -604,8 +618,8 @@ JUGADOR                    BACKEND
    │                          │
    │── POST /games/bet ───────►│ GameController (JWT Guard)
    │  { gameType: "roulette", │   └── PlaceBetUseCase
-   │    amount: 100,          │         ├── WalletApiAdapter.getBalance()
-   │    selection: [...] }    │         │     └── GET /api/wallet/:userId
+  │    amount: 100,          │         ├── WalletApiAdapter.getBalance(token)
+  │    selection: [...] }    │         │     └── GET /api/wallet/me
    │                          │         ├── WalletApiAdapter.debit()
    │                          │         │     └── POST /api/wallet/bet
    │                          │         ├── RoulettePlugin.execute(bet)
