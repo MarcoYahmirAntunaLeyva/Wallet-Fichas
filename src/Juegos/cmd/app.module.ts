@@ -1,6 +1,7 @@
 import { Module, Provider } from '@nestjs/common';
 import { AppController } from '../pkg/app.controller';
 import { AppService } from '../pkg/app.service';
+import { AuthModule } from '../../auth/auth.module';
 import { GameController } from '../internal/infrastructure/adapters/game.controller';
 import { PlaceBetUseCase } from '../internal/application/usecases/place-bet.use-case';
 import { WALLET_PORT } from '../internal/domain/ports/wallet.port';
@@ -21,7 +22,7 @@ const GamePluginsProvider: Provider = {
 import { WalletController } from '../internal/infrastructure/adapters/wallet.controller';
 
 @Module({
-  imports: [],
+  imports: [AuthModule],
   controllers: [AppController, GameController, WalletController],
   providers: [
     AppService,
@@ -45,4 +46,4 @@ import { WalletController } from '../internal/infrastructure/adapters/wallet.con
     // but better to fix use-case to use @Inject('GAME_PLUGINS')
   ],
 })
-export class AppModule1 {}
+export class GameModule {}

@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { beforeEach, describe, it } from 'node:test';
-import { expect } from '@jest/globals';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -22,6 +20,3 @@ describe('AppController', () => {
     });
   });
 });
-
-// Remove the custom expect function to use Jest's expect instead
-

@@ -88,7 +88,7 @@ export class RegisterUseCase {
         email: newUser.email,
         name: newUser.name,
         nickname: newUser.nickname,
-        wallet: { chips: 0, money: 100 },
+        wallet: { chips: 0, money: 0 },
       };
     } catch (error: unknown) {
       if (error instanceof BadRequestException) throw error;

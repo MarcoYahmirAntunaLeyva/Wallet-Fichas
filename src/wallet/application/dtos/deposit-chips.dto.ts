@@ -2,8 +2,6 @@ import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class DepositChipsDto {
-  @IsString()
-  @IsNotEmpty()
   userId!: string;
 
   @IsOptional()

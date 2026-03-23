@@ -13,9 +13,9 @@ export class BetSelectionDto {
 }
 
 export class PlaceBetDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  userId!: string;
+  userId?: string;
 
   @IsNumber()
   @IsPositive()

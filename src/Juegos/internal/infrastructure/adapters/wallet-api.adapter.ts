@@ -5,8 +5,12 @@ import { WalletPort } from '../../domain/ports/wallet.port';
 export class WalletApiAdapter implements WalletPort {
   private readonly baseUrl = process.env.WALLET_SERVICE_URL || 'http://localhost:3000/api'; // Host local:3000/api, wallet-service:3000/api en Docker
 
-  async getBalance(userId: string): Promise<number> {
-    const response = await fetch(`${this.baseUrl}/wallet/${userId}`);
+  async getBalance(accessToken: string): Promise<number> {
+    const response = await fetch(`${this.baseUrl}/wallet/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     if (!response.ok) {
       if (response.status === 404) {
         return 0; // Si el usuario no tiene wallet, asumimos balance 0
@@ -18,12 +22,14 @@ export class WalletApiAdapter implements WalletPort {
     return data.wallet?.chips ?? data.chips ?? 0;
   }
 
-  async debit(userId: string, amount: number, gameDescription: string): Promise<boolean> {
+  async debit(accessToken: string, amount: number, gameDescription: string): Promise<boolean> {
     const response = await fetch(`${this.baseUrl}/wallet/bet`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify({
-        userId,
         chipsAmount: amount,           // ← campo correcto
         gameDescription,
       }),
@@ -31,12 +37,14 @@ export class WalletApiAdapter implements WalletPort {
     return response.ok;
   }
 
-  async credit(userId: string, amount: number, gameDescription: string): Promise<boolean> {
+  async credit(accessToken: string, amount: number, gameDescription: string): Promise<boolean> {
     const response = await fetch(`${this.baseUrl}/wallet/credit`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify({
-        userId,
         chipsAmount: amount,           // ← campo correcto
         gameDescription,
       }),

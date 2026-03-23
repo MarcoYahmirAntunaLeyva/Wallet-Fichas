@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { AuthModule } from '../auth/auth.module';
 
 // Domain
 import { WALLET_REPOSITORY } from './domain/repositories/wallet.repository.interface';
@@ -43,6 +44,7 @@ const WalletRepositoryProvider = {
 };
 
 @Module({
+  imports: [AuthModule],
   controllers: [WalletController],
   providers: [
     // Firebase

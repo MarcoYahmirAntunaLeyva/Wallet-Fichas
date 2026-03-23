@@ -7,6 +7,7 @@
 import { Injectable, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+
 import {
   getApp,
   getApps,
@@ -115,6 +116,7 @@ const FirestoreAuthProvider = {
       secret: process.env.JWT_SECRET ?? 'SECRETDEVUTD',
       signOptions: { expiresIn: '1h' },
     }),
+
     // ✅ WalletModule ya NO se importa — la comunicación es por HTTP
   ],
   controllers: [AuthController],
@@ -162,6 +164,8 @@ const FirestoreAuthProvider = {
     { provide: 'IPasswordHasher', useClass: BcryptAdapter },
   ],
   exports: [
+    JwtModule,
+    JwtAdapter,
     'IAuthRepository',
     JwtAuthGuard,
     FirebaseAuthRepository,

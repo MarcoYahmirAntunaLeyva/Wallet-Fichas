@@ -1,8 +1,6 @@
 import { IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 export class CreditWinnerDto {
-  @IsString()
-  @IsNotEmpty()
   userId!: string;
 
   @IsNumber()

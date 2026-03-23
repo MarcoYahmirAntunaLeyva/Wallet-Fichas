@@ -13,20 +13,20 @@ export class PlaceBetUseCase {
     @Inject('GAME_PLUGINS') private readonly plugins: GamePlugin[],
   ) {}
 
-  async execute(bet: Bet): Promise<GameResult> {
+  async execute(bet: Bet, accessToken: string): Promise<GameResult> {
     const plugin = this.plugins.find(p => p.getName() === bet.gameType);
     if (!plugin) {
       throw new NotFoundException(`Juego '${bet.gameType}' no soportado.`);
     }
 
     // 1. Verificar y Debitar Saldo
-    const balance = await this.walletPort.getBalance(bet.userId);
+    const balance = await this.walletPort.getBalance(accessToken);
     if (balance < bet.amount) {
       throw new BadRequestException('Saldo insuficiente para realizar la apuesta.');
     }
 
     const gameLabel = plugin.getName().charAt(0).toUpperCase() + plugin.getName().slice(1);
-    const debited = await this.walletPort.debit(bet.userId, bet.amount, `Apuesta en ${gameLabel}`);
+    const debited = await this.walletPort.debit(accessToken, bet.amount, `Apuesta en ${gameLabel}`);
     if (!debited) {
       throw new Error('Error al procesar el débito en la billetera.');
     }
@@ -37,7 +37,7 @@ export class PlaceBetUseCase {
     // 3. Acreditar si ganó
     if (result.winner && result.payout > 0) {
       await this.walletPort.credit(
-        bet.userId,
+        accessToken,
         result.payout,
         `Premio ${gameLabel}: ${JSON.stringify(result.winningSelection)}`
       );
