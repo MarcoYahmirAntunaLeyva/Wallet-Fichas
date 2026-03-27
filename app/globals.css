@@ -1,0 +1,530 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Auth / Casino theme variables ─────────────────────────── */
+:root {
+  --neon: #00F580;
+  --gold: #C9962F;
+  --bg: #0D1F18;
+  --green-1: #3A7D5E;
+  --green-2: #2A5C47;
+  --green-3: #1C3D30;
+  --card-bg: rgba(18, 38, 25, 0.95);
+  --border: rgba(0, 245, 128, 0.15);
+  --text: #E8F0EB;
+  --muted: #7A9B8A;
+  --input-bg: rgba(0, 0, 0, 0.3);
+
+  /* Wallet theme */
+  --background: #101a17;
+  --foreground: #ededed;
+  --primary-dark: #17594a;
+  --primary: #0a3d2c;
+  --accent-green: #00ff9d;
+  --accent-yellow: #ffe066;
+  --accent-gold: #d4b03a;
+  --accent-dark: #11332d;
+  --font-lexend: 'Lexend', Arial, sans-serif;
+  --font-eb-garamond: 'EB Garamond', serif;
+
+  --radius: 0.625rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary: var(--primary);
+  --color-accent-green: var(--accent-green);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-dark: var(--accent-dark);
+  --font-sans: var(--font-lexend);
+  --font-serif: var(--font-eb-garamond);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Lexend', Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* ─── Auth page styles ───────────────────────────────────────── */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(ellipse 100% 55% at 50% 0%, #1a3828 0%, #0D1F18 55%);
+  pointer-events: none;
+}
+
+.bg-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(0, 245, 128, 0.025) 80px),
+    repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(0, 245, 128, 0.025) 80px);
+}
+
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  background: rgba(58, 125, 94, 0.18);
+  bottom: -100px;
+  right: -100px;
+  animation: drift1 12s ease-in-out infinite alternate;
+}
+
+.orb-2 {
+  width: 300px;
+  height: 300px;
+  background: rgba(201, 150, 47, 0.10);
+  top: 50px;
+  left: -80px;
+  animation: drift2 15s ease-in-out infinite alternate;
+}
+
+@keyframes drift1 {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-40px, -60px); }
+}
+
+@keyframes drift2 {
+  from { transform: translate(0, 0); }
+  to { transform: translate(50px, 40px); }
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 16px;
+  background: linear-gradient(160deg, rgba(18, 38, 25, 0.98) 0%, rgba(13, 31, 24, 1) 100%);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 40px 32px;
+  box-shadow: 0 0 0 1px rgba(0, 245, 128, 0.05), 0 32px 80px rgba(0, 0, 0, 0.8);
+  animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Override .card from wallet.css for the auth card */
+.page.auth-page .card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 16px;
+  background: linear-gradient(160deg, rgba(18, 38, 25, 0.98) 0%, rgba(13, 31, 24, 1) 100%) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 24px !important;
+  padding: 40px 32px !important;
+  box-shadow: 0 0 0 1px rgba(0, 245, 128, 0.05), 0 32px 80px rgba(0, 0, 0, 0.8) !important;
+  animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--green-1), var(--green-3));
+  border: 1px solid rgba(0, 245, 128, 0.3);
+  margin-bottom: 16px;
+  box-shadow: 0 0 30px rgba(0, 245, 128, 0.2);
+}
+
+.logo-name {
+  font-family: 'EB Garamond', serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  display: block;
+}
+
+.logo-name span {
+  color: var(--gold);
+}
+
+.logo-tagline {
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 6px;
+  display: block;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(201, 150, 47, 0.3);
+  background: rgba(201, 150, 47, 0.1);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(0.8); }
+}
+
+.tabs-container {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-btn.active {
+  background: rgba(0, 245, 128, 0.15);
+  color: var(--text);
+  box-shadow: 0 4px 15px rgba(0, 245, 128, 0.1);
+  border: 1px solid rgba(0, 245, 128, 0.3);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.form-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--input-bg);
+  border: 1px solid rgba(0, 245, 128, 0.15);
+  border-radius: 12px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.form-input::placeholder {
+  color: rgba(122, 155, 138, 0.4);
+}
+
+.form-input:focus {
+  border-color: rgba(0, 245, 128, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 4px rgba(0, 245, 128, 0.08);
+}
+
+.link {
+  color: var(--neon);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: #00FF88;
+  text-decoration: underline;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--neon), #00C468);
+  color: var(--green-3);
+  font-family: 'Lexend';
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 25px rgba(0, 245, 128, 0.3);
+  margin-top: 8px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 35px rgba(0, 245, 128, 0.45);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.footer-text {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(28, 61, 48, 0.3);
+  border-top-color: var(--green-3);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.justify-center {
+  display: flex;
+  justify-content: center;
+}
+
+.invalid {
+  border-color: #ff4d4d !important;
+  box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.1) !important;
+}
+
+.input-error {
+  color: #ff4d4d;
+  font-size: 11px;
+  margin-top: 6px;
+  display: block;
+  font-weight: 500;
+}
+
+.auth-form { }
+
+/* ─── Wallet styles ──────────────────────────────────────────── */
+.wallet-main {
+  min-height: 100vh;
+  background: #0a0e0c;
+  color: #fff;
+  padding: 2rem;
+  font-family: 'Lexend', 'Segoe UI', Arial, sans-serif;
+}
+
+.casino-btn {
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 0.8rem 2rem;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.casino-btn.yellow {
+  background: #ffe066;
+  color: #174d3a;
+}
+
+.casino-btn.green {
+  background: #2ecc40;
+  color: #174d3a;
+}
+
+.casino-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* ─── Sidebar (not used in integrated, but kept for compat) ─── */
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #101010 0%, #232323 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.08);
+}
+
+.sidebar-header {
+  font-family: 'Lexend', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 1.2rem;
+}
+
+.sidebar-nav a {
+  color: #00ff9d;
+  text-decoration: none;
+  font-family: 'Lexend', Arial, sans-serif;
+  font-size: 1.1rem;
+  transition: color 0.2s;
+}
+
+.sidebar-nav a:hover {
+  color: #ffe066;
+}
+
+/* ─── Card input simulator ────────────────────────────────────── */
+.card-sim-container {
+  background: linear-gradient(135deg, #4f2c8b 0%, #6a3093 100%);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+  padding: 2rem 2rem 1.5rem 2rem;
+  color: #fff;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.card-sim-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-sim-logo {
+  height: 32px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.card-sim-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+.card-sim-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.card-sim-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.card-sim-row-2 {
+  gap: 1rem;
+}
+
+.card-sim-input {
+  flex: 1;
+  background: #3a2067;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 1.2rem;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  opacity: 0.7;
+}
+
+.card-sim-input:disabled {
+  background: #3a2067;
+  color: #fff;
+  opacity: 0.7;
+}
