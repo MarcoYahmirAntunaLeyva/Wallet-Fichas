@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, CreditCard, LockKeyhole, ShieldCheck, Sparkles, Waves } from 'lucide-react';
+import { CreditCard, LockKeyhole, ShieldCheck, Sparkles, Waves } from 'lucide-react';
 
 type PaymentMethodModalProps = {
   purchaseLabel: string;
@@ -223,23 +223,15 @@ export default function PaymentMethodModal({
             </div>
           </div>
 
-          <div className="space-y-3 rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
+          <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
             <SummaryRow label="Tipo de compra" value={purchaseLabel} />
             <SummaryRow label="Pago total" value={`$${moneyAmount.toLocaleString('es-MX')} MXN`} emphasis />
             <SummaryRow label="Fichas a recibir" value={chips.toLocaleString('es-MX')} />
             <SummaryRow label="Tarjeta" value={brand} />
           </div>
 
-          <div className="mt-4 rounded-[24px] border border-emerald-400/10 bg-emerald-400/5 p-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
-              <div>
-                <div className="text-sm font-semibold text-white">Experiencia de pago mas fluida</div>
-                <p className="mt-1 text-sm leading-6 text-white/60">
-                  La tarjeta ahora responde mejor al ingreso manual y el modal tiene transiciones mas suaves para sentirse mas premium.
-                </p>
-              </div>
-            </div>
+          <div className="mt-4 border-t border-white/8 pt-4 text-sm text-white/55">
+            El pago es una simulacion visual para la interfaz. No se procesa ningun cargo real.
           </div>
 
           {error && (
