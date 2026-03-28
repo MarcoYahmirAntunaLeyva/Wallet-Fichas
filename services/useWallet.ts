@@ -89,6 +89,10 @@ export function useDeposit(userId?: string, onSuccess?: () => void) {
   const [error, setError] = useState<string | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
+  const reset = () => {
+    setError(null);
+  };
+
   const depositFree = async (moneyAmount: number) => {
     setLoading(true);
     setError(null);
@@ -133,7 +137,7 @@ export function useDeposit(userId?: string, onSuccess?: () => void) {
     }
   };
 
-  return { depositFree, depositPkg, loading, error, wallet };
+  return { depositFree, depositPkg, loading, error, wallet, reset };
 }
 
 export function useWithdraw(userId?: string, onSuccess?: () => void) {

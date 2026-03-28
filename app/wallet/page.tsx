@@ -5,20 +5,38 @@ import CashValueCard from '@/components/wallet/CashValueCard';
 import ChipExchange from '@/components/wallet/ChipExchange';
 import LifetimeWinningsCard from '@/components/wallet/LifetimeWinningsCard';
 import ActivityList from '@/components/wallet/ActivityList';
+import PaymentMethodModal from '@/components/wallet/PaymentMethodModal';
 import { useBalance, useDeposit, useWithdraw, usePackages } from '@/services/useWallet';
 
 const CHIPS_PER_PESO = 10;
 
+type PurchaseDraft =
+  | {
+      kind: 'free';
+      purchaseLabel: string;
+      chips: number;
+      moneyAmount: number;
+    }
+  | {
+      kind: 'package';
+      packageIndex: number;
+      purchaseLabel: string;
+      chips: number;
+      moneyAmount: number;
+    };
+
 export default function WalletPage() {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showPackagesModal, setShowPackagesModal] = useState(false);
+  const [purchaseDraft, setPurchaseDraft] = useState<PurchaseDraft | null>(null);
 
   const { data: balanceData, loading: balanceLoading, error: balanceError, refetch } = useBalance();
 
-  const { depositFree, depositPkg, loading: depositLoading, error: depositError } = useDeposit(undefined, () => {
+  const { depositFree, depositPkg, loading: depositLoading, error: depositError, reset: resetDepositState } = useDeposit(undefined, () => {
     refetch();
     setShowBuyModal(false);
     setShowPackagesModal(false);
+    setPurchaseDraft(null);
   });
 
   const { withdraw, loading: withdrawLoading, error: withdrawError } = useWithdraw(undefined, () => {
@@ -58,6 +76,71 @@ export default function WalletPage() {
     );
   }
 
+  const openFreePurchaseSelection = () => {
+    resetDepositState();
+    setPurchaseDraft(null);
+    setShowPackagesModal(false);
+    setShowBuyModal(true);
+  };
+
+  const openPackageSelection = () => {
+    resetDepositState();
+    setPurchaseDraft(null);
+    setShowBuyModal(false);
+    setShowPackagesModal(true);
+  };
+
+  const openPaymentForFree = (moneyAmount: number, chipAmount: number) => {
+    resetDepositState();
+    setPurchaseDraft({
+      kind: 'free',
+      purchaseLabel: 'Compra individual',
+      moneyAmount,
+      chips: chipAmount,
+    });
+    setShowBuyModal(false);
+  };
+
+  const openPaymentForPackage = (packageIndex: number, moneyAmount: number, chipAmount: number) => {
+    resetDepositState();
+    setPurchaseDraft({
+      kind: 'package',
+      packageIndex,
+      purchaseLabel: 'Paquete de fichas',
+      moneyAmount,
+      chips: chipAmount,
+    });
+    setShowPackagesModal(false);
+  };
+
+  const closePaymentModal = () => {
+    resetDepositState();
+    setPurchaseDraft(null);
+  };
+
+  const goBackFromPayment = () => {
+    if (!purchaseDraft) return;
+    resetDepositState();
+    const previousStep = purchaseDraft.kind;
+    setPurchaseDraft(null);
+    if (previousStep === 'free') {
+      setShowBuyModal(true);
+      return;
+    }
+    setShowPackagesModal(true);
+  };
+
+  const confirmPurchase = () => {
+    if (!purchaseDraft) return;
+
+    if (purchaseDraft.kind === 'free') {
+      depositFree(purchaseDraft.moneyAmount);
+      return;
+    }
+
+    depositPkg(purchaseDraft.packageIndex, purchaseDraft.moneyAmount);
+  };
+
   return (
     <main className="wallet-main pt-20">
       <div className="mt-8">
@@ -66,14 +149,14 @@ export default function WalletPage() {
             balance={chips}
             chipColor={chipColor}
             vip={chips >= 10000}
-            onCashOut={() => setShowBuyModal(true)}
-            onBuyChips={() => setShowPackagesModal(true)}
+            onCashOut={openFreePurchaseSelection}
+            onBuyChips={openPackageSelection}
           />
           <div className="flex gap-4 mt-4">
-            <button className="casino-btn green" onClick={() => setShowBuyModal(true)}>
+            <button className="casino-btn green" onClick={openFreePurchaseSelection}>
               Depositar
             </button>
-            <button className="casino-btn yellow" onClick={() => setShowPackagesModal(true)}>
+            <button className="casino-btn yellow" onClick={openPackageSelection}>
               Comprar por paquete
             </button>
           </div>
@@ -100,23 +183,34 @@ export default function WalletPage() {
         </div>
 
         {showBuyModal && (
-          <Modal onClose={() => setShowBuyModal(false)}>
+          <Modal onClose={() => setShowBuyModal(false)} maxWidthClass="max-w-lg">
             <BuyFreeModal
-              onConfirm={depositFree}
-              loading={depositLoading}
-              error={depositError}
+              onContinue={openPaymentForFree}
               onClose={() => setShowBuyModal(false)}
             />
           </Modal>
         )}
 
         {showPackagesModal && (
-          <Modal onClose={() => setShowPackagesModal(false)}>
+          <Modal onClose={() => setShowPackagesModal(false)} maxWidthClass="max-w-xl">
             <BuyPackagesModal
-              onConfirm={(packageIndex, moneyAmount) => depositPkg(packageIndex, moneyAmount)}
+              onContinue={openPaymentForPackage}
+              onClose={() => setShowPackagesModal(false)}
+            />
+          </Modal>
+        )}
+
+        {purchaseDraft && (
+          <Modal onClose={closePaymentModal} maxWidthClass="max-w-5xl">
+            <PaymentMethodModal
+              purchaseLabel={purchaseDraft.purchaseLabel}
+              chips={purchaseDraft.chips}
+              moneyAmount={purchaseDraft.moneyAmount}
               loading={depositLoading}
               error={depositError}
-              onClose={() => setShowPackagesModal(false)}
+              onBack={goBackFromPayment}
+              onClose={closePaymentModal}
+              onConfirm={confirmPurchase}
             />
           </Modal>
         )}
@@ -136,12 +230,20 @@ function actionToType(action: string): string {
   return map[action] ?? 'WALLET';
 }
 
-function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+function Modal({
+  children,
+  onClose,
+  maxWidthClass = 'max-w-md',
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  maxWidthClass?: string;
+}) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-green-900 rounded-lg p-8 w-full max-w-md shadow-2xl relative border border-green-700">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm">
+      <div className={`relative max-h-[92vh] w-full overflow-y-auto rounded-[28px] border border-green-700/80 bg-[linear-gradient(180deg,rgba(14,49,37,0.98)_0%,rgba(7,21,16,0.98)_100%)] p-8 shadow-2xl ${maxWidthClass}`}>
         <button
-          className="absolute top-3 right-4 text-yellow-400 font-bold text-lg hover:text-yellow-200"
+          className="absolute right-4 top-3 text-lg font-bold text-yellow-400 hover:text-yellow-200"
           onClick={onClose}
         >✕</button>
         {children}
@@ -150,10 +252,8 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   );
 }
 
-function BuyFreeModal({ onConfirm, loading, error, onClose }: {
-  onConfirm: (amount: number) => void;
-  loading: boolean;
-  error: string | null;
+function BuyFreeModal({ onContinue, onClose }: {
+  onContinue: (amount: number, chips: number) => void;
   onClose: () => void;
 }) {
   const [amount, setAmount] = useState('');
@@ -161,7 +261,10 @@ function BuyFreeModal({ onConfirm, loading, error, onClose }: {
 
   return (
     <div>
-      <h3 className="text-yellow-400 text-xl font-bold mb-4 text-center">💰 Comprar fichas</h3>
+      <h3 className="mb-3 text-center text-2xl font-bold text-yellow-400">Comprar fichas</h3>
+      <p className="mb-6 text-center text-sm text-green-200/80">
+        Elige un monto y despues agrega una tarjeta para completar la simulacion de pago.
+      </p>
       <label className="block text-green-300 text-sm mb-1">Monto en pesos MXN</label>
       <input
         type="number"
@@ -176,26 +279,23 @@ function BuyFreeModal({ onConfirm, loading, error, onClose }: {
           Recibirás <span className="text-yellow-400 font-bold">{chips.toLocaleString()} fichas</span>
         </p>
       )}
-      {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
       <button
         className="casino-btn green w-full mb-2"
-        onClick={() => onConfirm(Number(amount))}
-        disabled={loading || Number(amount) <= 0}
+        onClick={() => onContinue(Number(amount), chips)}
+        disabled={Number(amount) <= 0}
       >
-        {loading ? 'Procesando...' : 'Confirmar compra'}
+        Continuar al pago
       </button>
       <button className="casino-btn yellow w-full" onClick={onClose}>Cancelar</button>
     </div>
   );
 }
 
-function BuyPackagesModal({ onConfirm, loading, error, onClose }: {
-  onConfirm: (packageIndex: number, moneyAmount: number) => void;
-  loading: boolean;
-  error: string | null;
+function BuyPackagesModal({ onContinue, onClose }: {
+  onContinue: (packageIndex: number, moneyAmount: number, chips: number) => void;
   onClose: () => void;
 }) {
-  const { data: pkgData, loading: pkgLoading } = usePackages();
+  const { data: pkgData, loading: pkgLoading, error: pkgError } = usePackages();
   const [selected, setSelected] = useState<number | null>(null);
 
   if (pkgLoading) return <div className="text-green-300 text-center py-8">Cargando paquetes...</div>;
@@ -204,7 +304,10 @@ function BuyPackagesModal({ onConfirm, loading, error, onClose }: {
 
   return (
     <div>
-      <h3 className="text-yellow-400 text-xl font-bold mb-4 text-center">🎰 Paquetes de fichas</h3>
+      <h3 className="mb-3 text-center text-2xl font-bold text-yellow-400">Paquetes de fichas</h3>
+      <p className="mb-6 text-center text-sm text-green-200/80">
+        Selecciona un paquete y despues agrega una tarjeta para continuar con la compra.
+      </p>
       <div className="space-y-3 mb-4">
         {packages.map((pkg, idx) => (
           <label
@@ -229,16 +332,16 @@ function BuyPackagesModal({ onConfirm, loading, error, onClose }: {
           </label>
         ))}
       </div>
-      {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+      {pkgError && <p className="mb-3 text-sm text-red-400">{pkgError}</p>}
       <button
         className="casino-btn yellow w-full mb-2"
         onClick={() => {
           if (selected === null) return;
-          onConfirm(selected, packages[selected]?.price ?? 0);
+          onContinue(selected, packages[selected]?.price ?? 0, packages[selected]?.chips ?? 0);
         }}
-        disabled={loading || selected === null}
+        disabled={selected === null}
       >
-        {loading ? 'Procesando...' : 'Confirmar paquete'}
+        Continuar al pago
       </button>
       <button className="casino-btn green w-full" onClick={onClose}>Cancelar</button>
     </div>
