@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { Coins, Gem, ShieldCheck } from 'lucide-react';
 import BalanceCard from '@/components/wallet/BalanceCard';
 import CashValueCard from '@/components/wallet/CashValueCard';
 import ChipExchange from '@/components/wallet/ChipExchange';
@@ -62,7 +63,10 @@ export default function WalletPage() {
   if (balanceLoading) {
     return (
       <main className="wallet-main flex items-center justify-center pt-20">
-        <div className="text-green-400 text-2xl animate-pulse">Cargando wallet...</div>
+        <div className="rounded-[28px] border border-emerald-400/15 bg-[linear-gradient(180deg,rgba(16,37,30,0.98)_0%,rgba(10,20,17,0.98)_100%)] px-8 py-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+          <div className="text-sm font-semibold uppercase tracking-[0.24em] text-white/45">Wallet</div>
+          <div className="mt-3 text-2xl font-black text-emerald-300 animate-pulse">Cargando panel...</div>
+        </div>
       </main>
     );
   }
@@ -70,8 +74,17 @@ export default function WalletPage() {
   if (balanceError) {
     return (
       <main className="wallet-main flex items-center justify-center flex-col gap-4 pt-20">
-        <div className="text-red-400 text-xl">Error: {balanceError}</div>
-        <button className="casino-btn green" onClick={refetch}>Reintentar</button>
+        <div className="rounded-[28px] border border-red-400/20 bg-[linear-gradient(180deg,rgba(44,16,16,0.98)_0%,rgba(25,10,10,0.98)_100%)] px-8 py-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+          <div className="text-sm font-semibold uppercase tracking-[0.24em] text-red-200/70">Wallet</div>
+          <div className="mt-3 text-xl font-black text-red-200">Error: {balanceError}</div>
+          <button
+            type="button"
+            className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400 px-5 py-3 text-sm font-bold text-[#0f211a] transition hover:brightness-95"
+            onClick={refetch}
+          >
+            Reintentar
+          </button>
+        </div>
       </main>
     );
   }
@@ -143,8 +156,38 @@ export default function WalletPage() {
 
   return (
     <main className="wallet-main pt-20">
-      <div className="mt-8">
-        <div className="mb-8">
+      <div className="relative mx-auto max-w-7xl px-6 py-10">
+        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+          <div className="rounded-[32px] border border-[rgba(0,245,128,0.15)] bg-[linear-gradient(160deg,rgba(18,38,25,0.98)_0%,rgba(13,31,24,1)_100%)] p-7 shadow-[0_0_0_1px_rgba(0,245,128,0.05),0_32px_80px_rgba(0,0,0,0.8)] md:p-8">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/40">
+              Wallet
+            </div>
+            <h1 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
+              Gestion de fichas
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55 md:text-base">
+              Consulta tu saldo, revisa el valor equivalente, compra fichas o realiza retiros desde un mismo lugar.
+            </p>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <HeroStat
+                icon={<Coins className="h-4 w-4" />}
+                label="Saldo disponible"
+                value={`${chips.toLocaleString('es-MX')} fichas`}
+              />
+              <HeroStat
+                icon={<Gem className="h-4 w-4" />}
+                label="Tipo de ficha"
+                value={`Ficha ${chipColor}`}
+              />
+              <HeroStat
+                icon={<ShieldCheck className="h-4 w-4" />}
+                label="Cuenta"
+                value={chips >= 10000 ? 'Nivel VIP' : 'Verificada'}
+              />
+            </div>
+          </div>
+
           <BalanceCard
             balance={chips}
             chipColor={chipColor}
@@ -152,35 +195,24 @@ export default function WalletPage() {
             onCashOut={openFreePurchaseSelection}
             onBuyChips={openPackageSelection}
           />
-          <div className="flex gap-4 mt-4">
-            <button className="casino-btn green" onClick={openFreePurchaseSelection}>
-              Depositar
-            </button>
-            <button className="casino-btn yellow" onClick={openPackageSelection}>
-              Comprar por paquete
-            </button>
+        </section>
+
+        <section className="mt-6 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="space-y-6">
+            <CashValueCard cashValue={chipsInMoney} />
+            <LifetimeWinningsCard winnings={lifetimeWinnings} />
+            <ChipExchange
+              rate={1 / CHIPS_PER_PESO}
+              onWithdraw={(payload) => {
+                if (payload?.chips) withdraw(payload.chips);
+              }}
+              withdrawLoading={withdrawLoading}
+              withdrawError={withdrawError ? { message: withdrawError } : null}
+            />
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-8 mb-8">
-          <CashValueCard cashValue={chipsInMoney} />
-          <LifetimeWinningsCard winnings={lifetimeWinnings} />
-        </div>
-
-        <div className="mb-8">
-          <ChipExchange
-            rate={1 / CHIPS_PER_PESO}
-            onWithdraw={(payload) => {
-              if (payload?.chips) withdraw(payload.chips);
-            }}
-            withdrawLoading={withdrawLoading}
-            withdrawError={withdrawError ? { message: withdrawError } : null}
-          />
-        </div>
-
-        <div className="mb-8">
           <ActivityList activities={activities} />
-        </div>
+        </section>
 
         {showBuyModal && (
           <Modal onClose={() => setShowBuyModal(false)} maxWidthClass="max-w-lg">
@@ -241,9 +273,9 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm">
-      <div className={`relative max-h-[92vh] w-full overflow-y-auto rounded-[28px] border border-green-700/80 bg-[linear-gradient(180deg,rgba(14,49,37,0.98)_0%,rgba(7,21,16,0.98)_100%)] p-8 shadow-2xl ${maxWidthClass}`}>
+      <div className={`relative max-h-[92vh] w-full overflow-y-auto rounded-[32px] border border-[rgba(0,245,128,0.15)] bg-[linear-gradient(160deg,rgba(18,38,25,0.98)_0%,rgba(13,31,24,1)_100%)] p-8 shadow-[0_0_0_1px_rgba(0,245,128,0.05),0_32px_80px_rgba(0,0,0,0.8)] ${maxWidthClass}`}>
         <button
-          className="absolute right-4 top-3 text-lg font-bold text-yellow-400 hover:text-yellow-200"
+          className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-lg font-bold text-yellow-200 transition hover:bg-white/10"
           onClick={onClose}
         >✕</button>
         {children}
@@ -261,32 +293,47 @@ function BuyFreeModal({ onContinue, onClose }: {
 
   return (
     <div>
-      <h3 className="mb-3 text-center text-2xl font-bold text-yellow-400">Comprar fichas</h3>
-      <p className="mb-6 text-center text-sm text-green-200/80">
+      <div className="text-center">
+        <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/20 bg-yellow-300/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-yellow-200">
+          <Coins className="h-3.5 w-3.5" />
+          Compra libre
+        </div>
+      </div>
+      <h3 className="mb-3 mt-5 text-center text-3xl font-black tracking-tight text-white">Comprar fichas</h3>
+      <p className="mb-6 text-center text-sm text-white/55">
         Elige un monto y despues agrega una tarjeta para completar la simulacion de pago.
       </p>
-      <label className="block text-green-300 text-sm mb-1">Monto en pesos MXN</label>
+
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/45">Monto en pesos MXN</label>
       <input
         type="number"
         value={amount}
         onChange={e => setAmount(e.target.value)}
-        className="w-full bg-green-950 text-white px-4 py-2 rounded text-lg border border-green-700 focus:outline-none focus:border-yellow-400 mb-2"
+        className="mb-3 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-lg text-white outline-none transition placeholder:text-white/25 focus:border-yellow-300/55 focus:bg-black/25"
         min={1}
         placeholder="Ej: 150"
       />
       {Number(amount) > 0 && (
-        <p className="text-green-300 text-sm mb-4 text-center">
-          Recibirás <span className="text-yellow-400 font-bold">{chips.toLocaleString()} fichas</span>
+        <p className="mb-5 rounded-2xl border border-emerald-400/12 bg-emerald-400/8 px-4 py-3 text-center text-sm text-white/70">
+          Recibiras <span className="font-bold text-yellow-200">{chips.toLocaleString('es-MX')} fichas</span>
         </p>
       )}
-      <button
-        className="casino-btn green w-full mb-2"
-        onClick={() => onContinue(Number(amount), chips)}
-        disabled={Number(amount) <= 0}
-      >
-        Continuar al pago
-      </button>
-      <button className="casino-btn yellow w-full" onClick={onClose}>Cancelar</button>
+
+      <div className="space-y-3">
+        <button
+          className="btn-primary w-full !mt-0"
+          onClick={() => onContinue(Number(amount), chips)}
+          disabled={Number(amount) <= 0}
+        >
+          Continuar al pago
+        </button>
+        <button
+          className="w-full rounded-2xl border border-[rgba(0,245,128,0.15)] bg-black/25 px-5 py-4 text-base font-semibold text-[#E8F0EB] transition hover:border-[rgba(0,245,128,0.3)] hover:bg-white/5"
+          onClick={onClose}
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   );
 }
@@ -304,18 +351,24 @@ function BuyPackagesModal({ onContinue, onClose }: {
 
   return (
     <div>
-      <h3 className="mb-3 text-center text-2xl font-bold text-yellow-400">Paquetes de fichas</h3>
-      <p className="mb-6 text-center text-sm text-green-200/80">
+      <div className="text-center">
+        <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/20 bg-yellow-300/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-yellow-200">
+          <Gem className="h-3.5 w-3.5" />
+          Seleccion de paquetes
+        </div>
+      </div>
+      <h3 className="mb-3 mt-5 text-center text-3xl font-black tracking-tight text-white">Paquetes de fichas</h3>
+      <p className="mb-6 text-center text-sm text-white/55">
         Selecciona un paquete y despues agrega una tarjeta para continuar con la compra.
       </p>
       <div className="space-y-3 mb-4">
         {packages.map((pkg, idx) => (
           <label
             key={idx}
-            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all ${
+            className={`flex items-center justify-between rounded-[22px] border p-4 transition-all ${
               selected === idx
-                ? 'border-yellow-400 bg-green-800'
-                : 'border-green-700 bg-green-950 hover:border-green-500'
+                ? 'border-yellow-300/40 bg-yellow-300/10 shadow-[0_12px_30px_rgba(201,150,47,0.12)]'
+                : 'border-white/8 bg-black/20 hover:border-emerald-400/30 hover:bg-black/25'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -324,26 +377,48 @@ function BuyPackagesModal({ onContinue, onClose }: {
                 name="package"
                 checked={selected === idx}
                 onChange={() => setSelected(idx)}
-                className="accent-yellow-400"
+                className="accent-yellow-300"
               />
-              <span className="text-white font-semibold">{pkg.chips.toLocaleString()} fichas</span>
+              <div>
+                <div className="font-semibold text-white">{pkg.chips.toLocaleString('es-MX')} fichas</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-white/35">Entrega inmediata</div>
+              </div>
             </div>
-            <span className="text-yellow-400 font-bold">${pkg.price} MXN</span>
+            <span className="text-lg font-black text-yellow-200">${pkg.price} MXN</span>
           </label>
         ))}
       </div>
-      {pkgError && <p className="mb-3 text-sm text-red-400">{pkgError}</p>}
-      <button
-        className="casino-btn yellow w-full mb-2"
-        onClick={() => {
-          if (selected === null) return;
-          onContinue(selected, packages[selected]?.price ?? 0, packages[selected]?.chips ?? 0);
-        }}
-        disabled={selected === null}
-      >
-        Continuar al pago
-      </button>
-      <button className="casino-btn green w-full" onClick={onClose}>Cancelar</button>
+      {pkgError && <p className="mb-3 rounded-2xl border border-red-400/20 bg-red-950/50 px-4 py-3 text-sm text-red-200">{pkgError}</p>}
+      <div className="space-y-3">
+        <button
+          className="btn-primary w-full !mt-0 disabled:opacity-40"
+          onClick={() => {
+            if (selected === null) return;
+            onContinue(selected, packages[selected]?.price ?? 0, packages[selected]?.chips ?? 0);
+          }}
+          disabled={selected === null}
+        >
+          Continuar al pago
+        </button>
+        <button
+          className="w-full rounded-2xl border border-[rgba(0,245,128,0.15)] bg-black/25 px-5 py-4 text-base font-semibold text-[#E8F0EB] transition hover:border-[rgba(0,245,128,0.3)] hover:bg-white/5"
+          onClick={onClose}
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HeroStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/6 bg-black/18 p-4 backdrop-blur-sm">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
+        <span className="text-emerald-300">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-3 text-lg font-bold text-white">{value}</div>
     </div>
   );
 }
