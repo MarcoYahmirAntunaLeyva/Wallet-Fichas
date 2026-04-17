@@ -204,9 +204,9 @@ export default function RoulettePage() {
           <div className="flex justify-between items-end flex-wrap gap-4">
             <div>
               <h1 className="text-5xl font-black tracking-tighter uppercase italic text-white">
-                Ruleta <span className="text-red-500">Original</span>
+                Ruleta <span className="text-red-500">Premium</span>
               </h1>
-              <p className="text-white/40 font-light mt-2 max-w-md">La misma experiencia que conoces, ahora integrada en el portal unificado.</p>
+              <p className="text-white/40 font-light mt-2 max-w-md">La misma experiencia que conoces, ahora integrada en nuestro casino virtual.</p>
             </div>
             <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
               <div>

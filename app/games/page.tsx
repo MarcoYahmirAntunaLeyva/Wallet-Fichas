@@ -1,4 +1,4 @@
-import { ArrowRight, CircleDot, Layers, Wallet } from "lucide-react";
+import { ArrowRight, CircleDot, Layers, Wallet, Triangle } from "lucide-react";
 import Link from "next/link";
 
 export default function GamesPage() {
@@ -13,14 +13,23 @@ export default function GamesPage() {
       available: true,
     },
     {
+      id: "plinko",
+      name: "Plinko",
+      description: "Deja caer la bola y multiplica tus fichas. Elige riesgo y filas.",
+      icon: <Triangle className="w-8 h-8 text-green-400" />,
+      color: "from-green-500/20 to-emerald-500/20",
+      path: "/games/plinko",
+      available: true,
+    },
+    {
       id: "blackjack",
       name: "Blackjack Royale",
       description: "Duelo de cartas contra el Dealer. Estrategia y riesgo.",
       icon: <Layers className="w-8 h-8 text-blue-500" />,
       color: "from-blue-500/20 to-indigo-500/20",
       path: "/games/blackjack",
-      available: false,
-    }
+      available: true,
+    },
   ];
 
   return (
