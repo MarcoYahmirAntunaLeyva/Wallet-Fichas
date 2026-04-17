@@ -1,7 +1,7 @@
 export interface Bet {
   userId: string;
   amount: number;
-  gameType: 'roulette' | 'blackjack';
+  gameType: 'roulette' | 'blackjack' | 'plinko';
   selection: any; // Dynamic selection (e.g., number for roulette)
 }
 

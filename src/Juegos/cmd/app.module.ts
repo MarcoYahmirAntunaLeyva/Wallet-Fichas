@@ -10,13 +10,14 @@ import { WalletApiAdapter } from '../internal/infrastructure/adapters/wallet-api
 import { HistoryAdapter } from '../internal/infrastructure/adapters/history.adapter';
 import { RoulettePlugin } from '../internal/infrastructure/plugins/roulette/roulette.plugin';
 import { BlackjackPlugin } from '../internal/infrastructure/plugins/blackjack/blackjack.plugin';
+import { PlinkoPlugin } from '../internal/infrastructure/plugins/plinko/plinko.plugin';
 
 const GamePluginsProvider: Provider = {
   provide: 'GAME_PLUGINS',
-  useFactory: (roulette: RoulettePlugin, blackjack: BlackjackPlugin) => {
-    return [roulette, blackjack];
+  useFactory: (roulette: RoulettePlugin, blackjack: BlackjackPlugin, plinko: PlinkoPlugin) => {
+    return [roulette, blackjack, plinko];
   },
-  inject: [RoulettePlugin, BlackjackPlugin],
+  inject: [RoulettePlugin, BlackjackPlugin, PlinkoPlugin],
 };
 
 import { WalletController } from '../internal/infrastructure/adapters/wallet.controller';
@@ -29,6 +30,7 @@ import { WalletController } from '../internal/infrastructure/adapters/wallet.con
     PlaceBetUseCase,
     RoulettePlugin,
     BlackjackPlugin,
+    PlinkoPlugin,
     {
       provide: WALLET_PORT,
       useClass: WalletApiAdapter,
@@ -39,11 +41,10 @@ import { WalletController } from '../internal/infrastructure/adapters/wallet.con
     },
     {
       provide: 'GAME_PLUGINS',
-      useFactory: (roulette: RoulettePlugin, blackjack: BlackjackPlugin) => [roulette, blackjack],
-      inject: [RoulettePlugin, BlackjackPlugin],
+      useFactory: (roulette: RoulettePlugin, blackjack: BlackjackPlugin, plinko: PlinkoPlugin) =>
+        [roulette, blackjack, plinko],
+      inject: [RoulettePlugin, BlackjackPlugin, PlinkoPlugin],
     },
-    // Override the useCase constructor injection if needed, 
-    // but better to fix use-case to use @Inject('GAME_PLUGINS')
   ],
 })
 export class GameModule {}
