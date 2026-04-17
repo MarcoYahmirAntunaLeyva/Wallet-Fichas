@@ -53,7 +53,7 @@ export default function WalletPage() {
     .reduce((acc, t) => acc + t.amount / CHIPS_PER_PESO, 0) ?? 0;
 
   const activities = (balanceData?.transactions ?? []).slice(0, 10).map(t => ({
-    title: t.description,
+    title: formatTransactionDescription(t.description),
     type: actionToType(t.action),
     date: new Date(t.date).toLocaleString('es-MX'),
     chips: t.action === 'BET' || t.action === 'WITHDRAW' ? -t.amount : t.amount,
@@ -157,36 +157,7 @@ export default function WalletPage() {
   return (
     <main className="wallet-main pt-20">
       <div className="relative mx-auto max-w-7xl px-6 py-10">
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
-          <div className="rounded-[32px] border border-[rgba(0,245,128,0.15)] bg-[linear-gradient(160deg,rgba(18,38,25,0.98)_0%,rgba(13,31,24,1)_100%)] p-7 shadow-[0_0_0_1px_rgba(0,245,128,0.05),0_32px_80px_rgba(0,0,0,0.8)] md:p-8">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/40">
-              Wallet
-            </div>
-            <h1 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
-              Gestion de fichas
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55 md:text-base">
-              Consulta tu saldo, revisa el valor equivalente, compra fichas o realiza retiros desde un mismo lugar.
-            </p>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <HeroStat
-                icon={<Coins className="h-4 w-4" />}
-                label="Saldo disponible"
-                value={`${chips.toLocaleString('es-MX')} fichas`}
-              />
-              <HeroStat
-                icon={<Gem className="h-4 w-4" />}
-                label="Tipo de ficha"
-                value={`Ficha ${chipColor}`}
-              />
-              <HeroStat
-                icon={<ShieldCheck className="h-4 w-4" />}
-                label="Cuenta"
-                value={chips >= 10000 ? 'Nivel VIP' : 'Verificada'}
-              />
-            </div>
-          </div>
+        <section className="grid gap-6">
 
           <BalanceCard
             balance={chips}
@@ -260,6 +231,66 @@ function actionToType(action: string): string {
     WITHDRAW: 'WALLET',
   };
   return map[action] ?? 'WALLET';
+}
+
+function formatTransactionDescription(description: string): string {
+  const trimmedDescription = description.trim();
+  const match = trimmedDescription.match(/^(.*?:)\s*(\{.*\})$/);
+
+  if (!match) {
+    return trimmedDescription;
+  }
+
+  const [, prefix, rawJson] = match;
+
+  try {
+    const parsed = JSON.parse(rawJson) as Record<string, unknown>;
+    const formattedDetails = formatDescriptionDetails(parsed);
+    return formattedDetails ? `${prefix} ${formattedDetails}` : prefix;
+  } catch {
+    return trimmedDescription;
+  }
+}
+
+function formatDescriptionDetails(details: Record<string, unknown>): string {
+  const parts: string[] = [];
+
+  if (typeof details.multiplier === 'number') {
+    parts.push(`x${details.multiplier}`);
+  }
+
+  if (typeof details.rows === 'number') {
+    parts.push(`${details.rows} filas`);
+  }
+
+  if (typeof details.risk === 'string') {
+    parts.push(`riesgo ${translateRisk(details.risk)}`);
+  }
+
+  if (parts.length > 0) {
+    return parts.join(' · ');
+  }
+
+  return Object.entries(details)
+    .map(([key, value]) => `${humanizeKey(key)} ${String(value)}`)
+    .join(' · ');
+}
+
+function translateRisk(risk: string): string {
+  const riskLabels: Record<string, string> = {
+    low: 'bajo',
+    medium: 'medio',
+    high: 'alto',
+  };
+
+  return riskLabels[risk] ?? risk;
+}
+
+function humanizeKey(key: string): string {
+  return key
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .toLowerCase();
 }
 
 function Modal({
